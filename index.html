@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda de Ropa - Sistema de Inventario</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1> Sistema de Inventario - Tienda de Ropa</h1>
+            <p class="subtitle">Gestiona tu catálogo de productos de moda</p>
+        </header>
+
+        <!-- Formulario de Registro de Productos -->
+        <section class="form-section">
+            <h2>Agregar Nuevo Producto</h2>
+            <form id="productForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre">Nombre del Producto:</label>
+                        <input type="text" id="nombre" name="nombre" placeholder="Ej: Camiseta Básica" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoria">Categoría:</label>
+                        <select id="categoria" name="categoria" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="Camisetas">Camisetas</option>
+                            <option value="Pantalones">Pantalones</option>
+                            <option value="Vestidos">Vestidos</option>
+                            <option value="Chaquetas">Chaquetas</option>
+                            <option value="Zapatos">Zapatos</option>
+                            <option value="Accesorios">Accesorios</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="talla">Talla:</label>
+                        <select id="talla" name="talla" required>
+                            <option value="">Seleccionar talla</option>
+                            <option value="XS">XS</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="XXL">XXL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Color:</label>
+                        <input type="text" id="color" name="color" placeholder="Ej: Negro" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="material">Material:</label>
+                        <input type="text" id="material" name="material" placeholder="Ej: Algodón 100%" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sku">SKU:</label>
+                        <input type="text" id="sku" name="sku" placeholder="Código único" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precio">Precio ($):</label>
+                        <input type="number" id="precio" name="precio" min="0" step="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock">Stock (Cantidad):</label>
+                        <input type="number" id="stock" name="stock" min="0" placeholder="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion" name="descripcion" rows="3" placeholder="Describe el producto..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary"> Agregar Producto</button>
+                    <button type="reset" class="btn btn-secondary"> Limpiar Formulario</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Tabla de Productos -->
+        <section class="table-section">
+            <h2> Inventario de Productos</h2>
+            <div class="table-controls">
+                <button id="refreshTable" class="btn btn-info"> Actualizar</button>
+                <input type="text" id="searchInput" placeholder="Buscar productos...">
+            </div>
+            
+            <div class="table-container">
+                <table id="productosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Talla</th>
+                            <th>Color</th>
+                            <th>Material</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>SKU</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productosTableBody">
+                        <!-- Los datos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal de Edición -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3> Editar Producto</h3>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editNombre">Nombre del Producto:</label>
+                            <input type="text" id="editNombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCategoria">Categoría:</label>
+                            <select id="editCategoria" name="categoria" required>
+                                <option value="Camisetas">Camisetas</option>
+                                <option value="Pantalones">Pantalones</option>
+                                <option value="Vestidos">Vestidos</option>
+                                <option value="Chaquetas">Chaquetas</option>
+                                <option value="Zapatos">Zapatos</option>
+                                <option value="Accesorios">Accesorios</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editTalla">Talla:</label>
+                            <select id="editTalla" name="talla" required>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editColor">Color:</label>
+                            <input type="text" id="editColor" name="color" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editMaterial">Material:</label>
+                            <input type="text" id="editMaterial" name="material" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editSku">SKU:</label>
+                            <input type="text" id="editSku" name="sku" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editPrecio">Precio ($):</label>
+                            <input type="number" id="editPrecio" name="precio" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editStock">Stock (Cantidad):</label>
+                            <input type="number" id="editStock" name="stock" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editDescripcion">Descripción:</label>
+                        <textarea id="editDescripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button id="saveEdit" class="btn btn-primary"> Guardar Cambios</button>
+                <button id="cancelEdit" class="btn btn-secondary"> Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Eliminación -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3> Eliminar Producto</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este producto?</p>
+                <p id="deleteProductName" style="font-weight: bold; color: #e74c3c;"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmDelete" class="btn btn-danger">✓ Eliminar</button>
+                <button id="cancelDelete" class="btn btn-secondary">✗ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <script src="supabaseConnection.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+    <!-- Mensajes de Notificación -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="supabaseConnection.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
